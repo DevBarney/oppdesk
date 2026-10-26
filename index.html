@@ -4,6 +4,144 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>OppDesk</title>
+<style>
+:root{--bg:#070b14;--card:#111827;--border:#1f2937;--text:#e5e7eb;--muted:#9ca3af;--faint:#6b7280;--accent:#38bdf8;--ok:#86efac;--danger:#fca5a5}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.45}
+.wrap{max-width:1100px;margin:0 auto;padding:16px}
+h1{font-size:1.5rem;font-weight:800;color:var(--accent)}
+.sub{color:var(--muted);font-size:.85rem;margin-bottom:14px}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:16px}
+.filters{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(min-width:720px){.filters{grid-template-columns:2fr 1.4fr 1fr}}
+label{display:block;font-size:.72rem;font-weight:600;color:var(--muted);margin-bottom:4px}
+input,select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:#070b14;color:var(--text);font-size:.95rem}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{font-size:.75rem;padding:5px 10px;border-radius:999px;background:#1f2937;color:var(--muted);cursor:pointer;border:1px solid transparent}
+.chip.active{background:#0c4a6e;color:#7dd3fc;border-color:var(--accent)}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+button{border:none;border-radius:10px;padding:10px 14px;font-weight:700;font-size:.9rem;cursor:pointer;background:var(--accent);color:#0c0a09}
+button.secondary{background:#1f2937;color:var(--text)}
+.stats{font-size:.82rem;color:var(--muted);margin:8px 0 12px}
+.grid{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:600px){.grid{grid-template-columns:1fr 1fr}}
+@media(min-width:960px){.grid{grid-template-columns:1fr 1fr 1fr}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.thumb{width:100%;aspect-ratio:16/9;object-fit:cover;background:#1f2937}
+.thumb-fallback{width:100%;aspect-ratio:16/9;background:#1f2937;display:flex;align-items:center;justify-content:center;color:var(--faint);font-size:.8rem}
+.body{padding:12px;display:flex;flex-direction:column;gap:8px;flex:1}
+.title{font-size:.92rem;font-weight:700;line-height:1.3}
+.meta{font-size:.75rem;color:var(--muted)}
+.excerpt{font-size:.78rem;color:var(--faint)}
+.tags{display:flex;flex-wrap:wrap;gap:4px}
+.tag{font-size:.68rem;padding:2px 7px;border-radius:999px;background:#1f2937;color:var(--faint)}
+.tag.cat{background:#164e63;color:#a5f3fc}
+.links a{display:block;text-align:center;text-decoration:none;font-size:.8rem;font-weight:700;padding:9px;border-radius:8px;background:var(--accent);color:#0c0a09;margin-top:auto}
+.status{margin-top:10px;padding:10px;border-radius:10px;font-size:.85rem;display:none}
+.status.show{display:block}
+.status.ok{background:#14532d;color:var(--ok)}
+.status.err{background:#450a0a;color:var(--danger)}
+.empty{text-align:center;color:var(--faint);padding:40px 10px}
+.note{font-size:.75rem;color:var(--faint);margin-top:14px;text-align:center}
+</style>
 </head>
-<body><p>Loading full deploy...</p></body>
+<body>
+<div class="wrap">
+  <h1>OppDesk</h1>
+  <p class="sub">Opportunity Desk · thumbnails · CSV · copy links</p>
+  <div class="panel">
+    <div class="filters">
+      <div><label>Search</label><input id="search" placeholder="nursing, africa, STEM..."/></div>
+      <div><label>Section</label>
+        <select id="section">
+          <option value="">All</option>
+          <option>Scholarships</option><option>Fellowships</option><option>Grants</option>
+          <option>Conferences</option><option>Internships</option><option>Volunteering</option>
+          <option>Short Courses</option><option>Online Courses</option>
+        </select>
+      </div>
+      <div><label>Show</label>
+        <select id="limit"><option value="24">24</option><option value="48" selected>48</option><option value="all">All</option></select>
+      </div>
+    </div>
+    <div class="chips">
+      <span class="chip active" data-s="" data-q="">All</span>
+      <span class="chip" data-s="Scholarships" data-q="">Scholarships</span>
+      <span class="chip" data-s="Fellowships" data-q="">Fellowships</span>
+      <span class="chip" data-s="Grants" data-q="">Grants</span>
+      <span class="chip" data-s="Internships" data-q="">Internships</span>
+      <span class="chip" data-s="Scholarships" data-q="nursing">Nursing</span>
+      <span class="chip" data-s="" data-q="nigeria">Nigeria</span>
+      <span class="chip" data-s="" data-q="africa">Africa</span>
+    </div>
+    <div class="actions">
+      <button onclick="render()">Apply</button>
+      <button class="secondary" onclick="exportCsv()">Export CSV</button>
+      <button class="secondary" onclick="copyLinks()">Copy links</button>
+    </div>
+    <div id="status" class="status"></div>
+  </div>
+  <p class="stats" id="stats"></p>
+  <div class="grid" id="grid"></div>
+  <p class="note">Latest sample per section. Ask Grok for full CSV refresh.</p>
+</div>
+<script>
+const DATA = [{"id":1,"title":"OppDesk is loading sample data","url":"https://opportunitydesk.org","date":"2026-10-26","excerpt":"Open Export CSV after data loads from Grok refresh.","img":"","categories":[],"tags":[],"section":"Scholarships"}];
+let ALL = DATA.slice();
+function $(id){return document.getElementById(id)}
+function setStatus(msg,type){const el=$("status");el.textContent=msg||"";el.className="status"+(msg?" show "+type:"")}
+function esc(v){v=(v==null?"":String(v)).replace(/"/g,'""');return /[",\n]/.test(v)?'"'+v+'"':v}
+function filtered(){
+  const q=($("search").value||"").trim().toLowerCase();
+  const section=$("section").value;
+  let list=ALL;
+  if(section) list=list.filter(i=>i.section===section);
+  if(q) list=list.filter(i=>[i.title,i.excerpt,(i.tags||[]).join(" "),(i.categories||[]).join(" "),i.section].join(" ").toLowerCase().includes(q));
+  return list;
+}
+function cardHtml(c){
+  const img=c.img?`<img class="thumb" src="${c.img}" alt="" loading="lazy" referrerpolicy="no-referrer"/>`:`<div class="thumb-fallback">No image</div>`;
+  const cats=[c.section].concat(c.categories||[]).filter((v,i,a)=>v&&a.indexOf(v)===i).slice(0,3).map(t=>`<span class="tag cat">${t}</span>`).join("");
+  const tags=(c.tags||[]).slice(0,2).map(t=>`<span class="tag">${t}</span>`).join("");
+  return `<article class="card">${img}<div class="body"><div class="title">${c.title||"Untitled"}</div><div class="meta">${c.date||""} · ${c.section||""}</div><div class="excerpt">${c.excerpt||""}</div><div class="tags">${cats}${tags}</div><div class="links"><a href="${c.url}" target="_blank" rel="noopener">Open opportunity</a></div></div></article>`;
+}
+function render(){
+  let list=filtered();
+  const lim=$("limit").value;
+  const shown=lim==="all"?list:list.slice(0,parseInt(lim,10));
+  $("grid").innerHTML=shown.length?shown.map(cardHtml).join(""):`<div class="empty">No matches.</div>`;
+  $("stats").textContent=`Showing ${shown.length} of ${list.length} matched · ${ALL.length} in snapshot`;
+}
+function exportCsv(){
+  const list=filtered();
+  if(!list.length) return setStatus("Nothing to export.","err");
+  const headers=["id","title","url","date","section","excerpt","img","categories","tags"];
+  const lines=[headers.join(",")].concat(list.map(c=>headers.map(h=>{let v=c[h];if(h==="categories"||h==="tags")v=(c[h]||[]).join("; ");return esc(v)}).join(",")));
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([lines.join("\n")],{type:"text/csv;charset=utf-8;"}));
+  a.download="oppdesk_"+list.length+".csv";
+  a.click();
+  setStatus("Exported "+list.length+" rows.","ok");
+}
+async function copyLinks(){
+  const links=filtered().map(i=>i.url).filter(Boolean);
+  if(!links.length) return setStatus("No links.","err");
+  try{await navigator.clipboard.writeText(links.join("\n"));setStatus("Copied "+links.length+" links.","ok")}
+  catch{setStatus("Clipboard blocked — use Export CSV.","err")}
+}
+document.querySelectorAll(".chip").forEach(chip=>{
+  chip.addEventListener("click",()=>{
+    document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));
+    chip.classList.add("active");
+    $("section").value=chip.getAttribute("data-s")||"";
+    $("search").value=chip.getAttribute("data-q")||"";
+    render();
+  });
+});
+$("search").addEventListener("keydown",e=>{if(e.key==="Enter")render()});
+["section","limit"].forEach(id=>$(id).addEventListener("change",render));
+setStatus("Loaded "+ALL.length+" opportunities.","ok");
+render();
+</script>
+</body>
 </html>
