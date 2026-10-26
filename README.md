@@ -1,7 +1,7 @@
 # OppDesk
 
-Browse Opportunity Desk (opportunitydesk.org) scholarships, fellowships, grants, and more.
+Browse Opportunity Desk opportunities with thumbnails, search, CSV export, and copy links.
 
-Snapshot-based (Cloudflare blocks live API from some hosts).
+Snapshot: ~30 latest posts per section.
 
-Ask Grok to refresh the snapshot anytime.
+Live site: deploy this repo to Vercel or open via GitHub Pages.
