@@ -1,7 +1,19 @@
 # OppDesk
 
-Browse Opportunity Desk opportunities with thumbnails, search, CSV export, and copy links.
+Opportunity Desk snapshots for scholarships, fellowships, grants, and more.
 
-Snapshot: ~30 latest posts per section.
+## Export rules (permanent)
 
-Live site: deploy this repo to Vercel or open via GitHub Pages.
+- **Only** include official **`application_url`** (apply / register / admissions page).
+- **Never** include Opportunity Desk article URLs (`opportunitydesk.org/...` post pages) as the link column.
+- Do not add `opportunitydesk_url` (or similar) unless the user explicitly asks.
+
+## CSV columns
+
+`id, title, application_url, date, excerpt, img, categories, tags, section, slug`
+
+## Refresh
+
+```bash
+python3 build_snapshot.py
+```
