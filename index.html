@@ -50,7 +50,7 @@ button.secondary{background:#1f2937;color:var(--text)}
 <body>
 <div class="wrap">
   <h1>OppDesk</h1>
-  <p class="sub">Official application links only · Opportunity Desk snapshots</p>
+  <p class="sub">Official application links only</p>
   <div class="panel">
     <div class="filters">
       <div><label>Search</label><input id="search" placeholder="nursing, africa, STEM..."/></div>
@@ -72,7 +72,6 @@ button.secondary{background:#1f2937;color:var(--text)}
       <span class="chip" data-s="Fellowships" data-q="">Fellowships</span>
       <span class="chip" data-s="Grants" data-q="">Grants</span>
       <span class="chip" data-s="Internships" data-q="">Internships</span>
-      <span class="chip" data-s="Scholarships" data-q="nursing">Nursing</span>
       <span class="chip" data-s="" data-q="nigeria">Nigeria</span>
       <span class="chip" data-s="" data-q="africa">Africa</span>
     </div>
@@ -85,82 +84,24 @@ button.secondary{background:#1f2937;color:var(--text)}
   </div>
   <p class="stats" id="stats">Loading...</p>
   <div class="grid" id="grid"></div>
-  <p class="note">Primary link = official application URL only. OD article URLs are never exported.</p>
+  <p class="note">application_url only · never Opportunity Desk article pages</p>
 </div>
 <script>
-const FILES = ["scholarships","fellowships","grants","conferences","internships","volunteering","short_courses","online_courses"];
-let ALL = [];
+const BASE="https://raw.githubusercontent.com/DevBarney/oppdesk/main/data/";
+const FILES=["scholarships","fellowships","grants","conferences","internships","volunteering","short_courses","online_courses"];
+let ALL=[];
 function $(id){return document.getElementById(id)}
 function setStatus(msg,type){const el=$("status");el.textContent=msg||"";el.className="status"+(msg?" show "+type:"")}
 function esc(v){v=(v==null?"":String(v)).replace(/"/g,'""');return /[",\n]/.test(v)?'"'+v+'"':v}
-function filtered(){
-  const q=($("search").value||"").trim().toLowerCase();
-  const section=$("section").value;
-  let list=ALL;
-  if(section) list=list.filter(i=>i.section===section);
-  if(q) list=list.filter(i=>[i.title,i.excerpt,(i.tags||[]).join(" "),(i.categories||[]).join(" "),i.section].join(" ").toLowerCase().includes(q));
-  return list;
-}
-function cardHtml(c){
-  const href = c.url || "";
-  const img=c.img?`<img class="thumb" src="${c.img}" alt="" loading="lazy" referrerpolicy="no-referrer"/>`:`<div class="thumb-fallback">No image</div>`;
-  const cats=[c.section].concat(c.categories||[]).filter((v,i,a)=>v&&a.indexOf(v)===i).slice(0,3).map(t=>`<span class="tag cat">${t}</span>`).join("");
-  const tags=(c.tags||[]).slice(0,2).map(t=>`<span class="tag">${t}</span>`).join("");
-  const btn = href
-    ? `<a href="${href}" target="_blank" rel="noopener">Open application</a>`
-    : `<a class="disabled" href="#">No apply link found</a>`;
-  return `<article class="card">${img}<div class="body"><div class="title">${c.title||"Untitled"}</div><div class="meta">${c.date||""} · ${c.section||""}</div><div class="excerpt">${c.excerpt||""}</div><div class="tags">${cats}${tags}</div><div class="links">${btn}</div></div></article>`;
-}
-function render(){
-  let list=filtered();
-  const lim=$("limit").value;
-  const shown=lim==="all"?list:list.slice(0,parseInt(lim,10));
-  $("grid").innerHTML=shown.length?shown.map(cardHtml).join(""):`<div class="empty">No matches.</div>`;
-  $("stats").textContent=`Showing ${shown.length} of ${list.length} matched · ${ALL.length} in snapshot`;
-}
-function exportCsv(){
-  const list=filtered();
-  if(!list.length) return setStatus("Nothing to export.","err");
-  const headers=["id","title","application_url","date","section","excerpt","img","categories","tags"];
-  const lines=[headers.join(",")].concat(list.map(c=>headers.map(h=>{
-    let v=c[h];
-    if(h==="application_url") v=c.url||"";
-    if(h==="categories"||h==="tags") v=(c[h]||[]).join("; ");
-    return esc(v);
-  }).join(",")));
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(new Blob([lines.join("\n")],{type:"text/csv;charset=utf-8;"}));
-  a.download="oppdesk_"+list.length+".csv";
-  a.click();
-  setStatus("Exported "+list.length+" rows (application_url only).","ok");
-}
-async function copyLinks(){
-  const links=filtered().map(i=>i.url).filter(Boolean);
-  if(!links.length) return setStatus("No application links.","err");
-  try{await navigator.clipboard.writeText(links.join("\n"));setStatus("Copied "+links.length+" application links.","ok")}
-  catch{setStatus("Clipboard blocked — use Export CSV.","err")}
-}
-document.querySelectorAll(".chip").forEach(chip=>{
-  chip.addEventListener("click",()=>{
-    document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));
-    chip.classList.add("active");
-    $("section").value=chip.getAttribute("data-s")||"";
-    $("search").value=chip.getAttribute("data-q")||"";
-    render();
-  });
-});
+function filtered(){const q=($("search").value||"").trim().toLowerCase();const section=$("section").value;let list=ALL;if(section)list=list.filter(i=>i.section===section);if(q)list=list.filter(i=>[i.title,i.excerpt,(i.tags||[]).join(" "),(i.categories||[]).join(" "),i.section].join(" ").toLowerCase().includes(q));return list}
+function cardHtml(c){const href=c.url||"";const img=c.img?`<img class="thumb" src="${c.img}" alt="" loading="lazy" referrerpolicy="no-referrer"/>`:`<div class="thumb-fallback">No image</div>`;const cats=[c.section].concat(c.categories||[]).filter((v,i,a)=>v&&a.indexOf(v)===i).slice(0,3).map(t=>`<span class="tag cat">${t}</span>`).join("");const tags=(c.tags||[]).slice(0,2).map(t=>`<span class="tag">${t}</span>`).join("");const btn=href?`<a href="${href}" target="_blank" rel="noopener">Open application</a>`:`<a class="disabled" href="#">No apply link found</a>`;return `<article class="card">${img}<div class="body"><div class="title">${c.title||"Untitled"}</div><div class="meta">${c.date||""} · ${c.section||""}</div><div class="excerpt">${c.excerpt||""}</div><div class="tags">${cats}${tags}</div><div class="links">${btn}</div></div></article>`}
+function render(){let list=filtered();const lim=$("limit").value;const shown=lim==="all"?list:list.slice(0,parseInt(lim,10));$("grid").innerHTML=shown.length?shown.map(cardHtml).join(""):`<div class="empty">No matches.</div>`;$("stats").textContent=`Showing ${shown.length} of ${list.length} matched · ${ALL.length} in snapshot`}
+function exportCsv(){const list=filtered();if(!list.length)return setStatus("Nothing to export.","err");const headers=["id","title","application_url","date","section","excerpt","img","categories","tags"];const lines=[headers.join(",")].concat(list.map(c=>headers.map(h=>{let v=c[h];if(h==="application_url")v=c.url||"";if(h==="categories"||h==="tags")v=(c[h]||[]).join("; ");return esc(v)}).join(",")));const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([lines.join("\n")],{type:"text/csv;charset=utf-8;"}));a.download="oppdesk_"+list.length+".csv";a.click();setStatus("Exported "+list.length+" rows.","ok")}
+async function copyLinks(){const links=filtered().map(i=>i.url).filter(Boolean);if(!links.length)return setStatus("No application links.","err");try{await navigator.clipboard.writeText(links.join("\n"));setStatus("Copied "+links.length+" links.","ok")}catch{setStatus("Clipboard blocked — use Export CSV.","err")}}
+document.querySelectorAll(".chip").forEach(chip=>{chip.addEventListener("click",()=>{document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));chip.classList.add("active");$("section").value=chip.getAttribute("data-s")||"";$("search").value=chip.getAttribute("data-q")||"";render()})});
 $("search").addEventListener("keydown",e=>{if(e.key==="Enter")render()});
 ["section","limit"].forEach(id=>$(id).addEventListener("change",render));
-(async function(){
-  setStatus("Loading opportunities...","info");
-  try{
-    const chunks=await Promise.all(FILES.map(f=>fetch("./data/"+f+".json").then(r=>{if(!r.ok)throw new Error(f+" "+r.status);return r.json()})));
-    ALL=chunks.flat();
-    ALL.sort((a,b)=>(b.date||"").localeCompare(a.date||""));
-    setStatus("Loaded "+ALL.length+" opportunities.","ok");
-    render();
-  }catch(e){setStatus("Failed: "+e.message,"err")}
-})();
+(async function(){setStatus("Loading...","info");try{const chunks=await Promise.all(FILES.map(f=>fetch(BASE+f+".json?t="+Date.now()).then(r=>{if(!r.ok)throw new Error(f+" "+r.status);return r.json()})));ALL=chunks.flat();ALL.sort((a,b)=>(b.date||"").localeCompare(a.date||""));setStatus("Loaded "+ALL.length+" opportunities.","ok");render()}catch(e){setStatus("Failed: "+e.message,"err")}})();
 </script>
 </body>
 </html>
