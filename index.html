@@ -83,61 +83,20 @@ button.secondary{background:#1f2937;color:var(--text)}
   </div>
   <p class="stats" id="stats"></p>
   <div class="grid" id="grid"></div>
-  <p class="note">Latest sample per section. Ask Grok for full CSV refresh.</p>
+  <p class="note">Sample snapshot. Ask Grok: refresh oppdesk for more.</p>
 </div>
 <script>
-const DATA = [{"id":1,"title":"OppDesk is loading sample data","url":"https://opportunitydesk.org","date":"2026-10-26","excerpt":"Open Export CSV after data loads from Grok refresh.","img":"","categories":[],"tags":[],"section":"Scholarships"}];
-let ALL = DATA.slice();
+const DATA=[{"id":179553,"title":"Swedish Institute Pioneering Women in STEM Scholarship 2027 (Fully-funded)","url":"https://opportunitydesk.org/2026/10/24/si-pioneering-women-in-stem-scholarship-2027/","date":"2026-10-24","excerpt":"Deadline: January 15, 2027. Fully-funded SI STEM scholarship for women.","img":"https://opportunitydesk.org/wp-content/uploads/2026/10/SI-Pioneering-Women-in-STEM-Scholarship-300x169.jpg","categories":["Scholarships"],"tags":["Sweden","STEM"],"section":"Scholarships"},{"id":179500,"title":"Sample Fellowship Opportunity","url":"https://opportunitydesk.org","date":"2026-10-20","excerpt":"Browse more via Export CSV or ask Grok to refresh OppDesk.","img":"","categories":["Fellowships"],"tags":[],"section":"Fellowships"}];
+let ALL=DATA.slice();
 function $(id){return document.getElementById(id)}
 function setStatus(msg,type){const el=$("status");el.textContent=msg||"";el.className="status"+(msg?" show "+type:"")}
 function esc(v){v=(v==null?"":String(v)).replace(/"/g,'""');return /[",\n]/.test(v)?'"'+v+'"':v}
-function filtered(){
-  const q=($("search").value||"").trim().toLowerCase();
-  const section=$("section").value;
-  let list=ALL;
-  if(section) list=list.filter(i=>i.section===section);
-  if(q) list=list.filter(i=>[i.title,i.excerpt,(i.tags||[]).join(" "),(i.categories||[]).join(" "),i.section].join(" ").toLowerCase().includes(q));
-  return list;
-}
-function cardHtml(c){
-  const img=c.img?`<img class="thumb" src="${c.img}" alt="" loading="lazy" referrerpolicy="no-referrer"/>`:`<div class="thumb-fallback">No image</div>`;
-  const cats=[c.section].concat(c.categories||[]).filter((v,i,a)=>v&&a.indexOf(v)===i).slice(0,3).map(t=>`<span class="tag cat">${t}</span>`).join("");
-  const tags=(c.tags||[]).slice(0,2).map(t=>`<span class="tag">${t}</span>`).join("");
-  return `<article class="card">${img}<div class="body"><div class="title">${c.title||"Untitled"}</div><div class="meta">${c.date||""} · ${c.section||""}</div><div class="excerpt">${c.excerpt||""}</div><div class="tags">${cats}${tags}</div><div class="links"><a href="${c.url}" target="_blank" rel="noopener">Open opportunity</a></div></div></article>`;
-}
-function render(){
-  let list=filtered();
-  const lim=$("limit").value;
-  const shown=lim==="all"?list:list.slice(0,parseInt(lim,10));
-  $("grid").innerHTML=shown.length?shown.map(cardHtml).join(""):`<div class="empty">No matches.</div>`;
-  $("stats").textContent=`Showing ${shown.length} of ${list.length} matched · ${ALL.length} in snapshot`;
-}
-function exportCsv(){
-  const list=filtered();
-  if(!list.length) return setStatus("Nothing to export.","err");
-  const headers=["id","title","url","date","section","excerpt","img","categories","tags"];
-  const lines=[headers.join(",")].concat(list.map(c=>headers.map(h=>{let v=c[h];if(h==="categories"||h==="tags")v=(c[h]||[]).join("; ");return esc(v)}).join(",")));
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(new Blob([lines.join("\n")],{type:"text/csv;charset=utf-8;"}));
-  a.download="oppdesk_"+list.length+".csv";
-  a.click();
-  setStatus("Exported "+list.length+" rows.","ok");
-}
-async function copyLinks(){
-  const links=filtered().map(i=>i.url).filter(Boolean);
-  if(!links.length) return setStatus("No links.","err");
-  try{await navigator.clipboard.writeText(links.join("\n"));setStatus("Copied "+links.length+" links.","ok")}
-  catch{setStatus("Clipboard blocked — use Export CSV.","err")}
-}
-document.querySelectorAll(".chip").forEach(chip=>{
-  chip.addEventListener("click",()=>{
-    document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));
-    chip.classList.add("active");
-    $("section").value=chip.getAttribute("data-s")||"";
-    $("search").value=chip.getAttribute("data-q")||"";
-    render();
-  });
-});
+function filtered(){const q=($("search").value||"").trim().toLowerCase();const section=$("section").value;let list=ALL;if(section)list=list.filter(i=>i.section===section);if(q)list=list.filter(i=>[i.title,i.excerpt,(i.tags||[]).join(" "),(i.categories||[]).join(" "),i.section].join(" ").toLowerCase().includes(q));return list}
+function cardHtml(c){const img=c.img?`<img class="thumb" src="${c.img}" alt="" loading="lazy" referrerpolicy="no-referrer"/>`:`<div class="thumb-fallback">No image</div>`;const cats=[c.section].concat(c.categories||[]).filter((v,i,a)=>v&&a.indexOf(v)===i).slice(0,3).map(t=>`<span class="tag cat">${t}</span>`).join("");const tags=(c.tags||[]).slice(0,2).map(t=>`<span class="tag">${t}</span>`).join("");return `<article class="card">${img}<div class="body"><div class="title">${c.title||"Untitled"}</div><div class="meta">${c.date||""} · ${c.section||""}</div><div class="excerpt">${c.excerpt||""}</div><div class="tags">${cats}${tags}</div><div class="links"><a href="${c.url}" target="_blank" rel="noopener">Open opportunity</a></div></div></article>`}
+function render(){let list=filtered();const lim=$("limit").value;const shown=lim==="all"?list:list.slice(0,parseInt(lim,10));$("grid").innerHTML=shown.length?shown.map(cardHtml).join(""):`<div class="empty">No matches.</div>`;$("stats").textContent=`Showing ${shown.length} of ${list.length} matched · ${ALL.length} in snapshot`}
+function exportCsv(){const list=filtered();if(!list.length)return setStatus("Nothing to export.","err");const headers=["id","title","url","date","section","excerpt","img","categories","tags"];const lines=[headers.join(",")].concat(list.map(c=>headers.map(h=>{let v=c[h];if(h==="categories"||h==="tags")v=(c[h]||[]).join("; ");return esc(v)}).join(",")));const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([lines.join("\n")],{type:"text/csv;charset=utf-8;"}));a.download="oppdesk_"+list.length+".csv";a.click();setStatus("Exported "+list.length+" rows.","ok")}
+async function copyLinks(){const links=filtered().map(i=>i.url).filter(Boolean);if(!links.length)return setStatus("No links.","err");try{await navigator.clipboard.writeText(links.join("\n"));setStatus("Copied "+links.length+" links.","ok")}catch{setStatus("Clipboard blocked — use Export CSV.","err")}}
+document.querySelectorAll(".chip").forEach(chip=>{chip.addEventListener("click",()=>{document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));chip.classList.add("active");$("section").value=chip.getAttribute("data-s")||"";$("search").value=chip.getAttribute("data-q")||"";render()})});
 $("search").addEventListener("keydown",e=>{if(e.key==="Enter")render()});
 ["section","limit"].forEach(id=>$(id).addEventListener("change",render));
 setStatus("Loaded "+ALL.length+" opportunities.","ok");
